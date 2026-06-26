@@ -6,7 +6,13 @@
 --
 --  Run this once in the Supabase SQL editor if you already ran 0001.
 --  (0001_init.sql has been corrected too, for fresh installs.)
+--
+--  The old function was RETURNS TABLE; you can't change a function's return
+--  type with CREATE OR REPLACE, so drop it first. This is safe: submit_guess()
+--  and daily_status() only call it via PERFORM (not a tracked dependency).
 -- ============================================================
+drop function if exists public.get_daily();
+
 create or replace function public.get_daily()
 returns void language plpgsql security definer set search_path = public as $$
 declare d date := (now() at time zone 'utc')::date;
