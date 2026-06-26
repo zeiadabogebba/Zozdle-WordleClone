@@ -18,6 +18,8 @@ every guess is scored by a SQL function that returns tile colours only. There ar
 1. Open **SQL Editor** → **New query**.
 2. Paste the entire contents of `supabase/migrations/0001_init.sql` and **Run**.
    This creates all tables, RLS policies, and the game/league/leaderboard functions.
+3. Then run `supabase/migrations/0002_fix_get_daily.sql` too (a one-line fix to the
+   daily-word generator). Fresh installs still need it; it's idempotent.
 
 ## 3. Load the word lists
 The schema created two empty tables, `answer_pool` (daily answers) and
@@ -77,7 +79,9 @@ blank keeps Zozdle running as the pure offline single-player game.
 - Streaks rank by *active* current streak (resets on a miss or loss; a stale streak
   shows 0 automatically — no cron needed). The daily rolls over at **00:00 UTC**.
 
-## What's next (client wiring — Phase 2/3)
-The backend is complete and tested. The remaining work is the front-end: magic-link
-sign-in + username, rewiring the daily loop to call `submit_guess`, and the leagues /
-leaderboards / friends'-grids UI. Those land next once this project is live.
+## The client is wired up
+Once the steps above are done and `js/config.js` has your keys, the app already
+supports it all: magic-link sign-in (account button), a username picker, the daily
+played through `submit_guess`, and the **Compete** button (trophy) for the global
+leaderboard, leagues (create/join by code), and friends' gated grids. Signed-out or
+offline visitors still get the full single-player game.

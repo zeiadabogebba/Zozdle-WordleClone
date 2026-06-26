@@ -155,10 +155,9 @@ begin
   return array_to_string(res, '');
 end $$;
 
--- ensure today's secret word exists (lazy, race-safe), return its meta
+-- ensure today's secret word exists (lazy, race-safe)
 create or replace function public.get_daily()
-returns table (puzzle_date date, puzzle_number int, length int)
-language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public as $$
 declare d date := (now() at time zone 'utc')::date;
 begin
   if not exists (select 1 from daily_words w where w.puzzle_date = d) then
@@ -166,8 +165,6 @@ begin
     select d, ap.length, ap.word from answer_pool ap order by random() limit 1
     on conflict (puzzle_date) do nothing;
   end if;
-  return query
-    select w.puzzle_date, w.puzzle_number, w.length from daily_words w where w.puzzle_date = d;
 end $$;
 
 -- full status for the signed-in user (no word unless finished)

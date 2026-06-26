@@ -23,6 +23,12 @@ CRT scanlines, a perspective grid horizon, and glowing neon tiles.
   falls back to a Merriam-Webster link, and looked-up words are cached for offline reuse.
 - **Stats** — played, win %, current/max streak, guess distribution, and a
   countdown to the next daily.
+- **Multiplayer (optional)** — sign in with a magic link to play a
+  *server-authoritative* daily (the answer never reaches the browser), climb
+  worldwide and friend-league leaderboards ranked by streak, and unlock friends'
+  grids each day once you've finished your own. Powered by Supabase — see
+  [SUPABASE_SETUP.md](SUPABASE_SETUP.md). Leave it unconfigured and Zozdle is a
+  complete offline single-player game.
 - **Offline** — a service worker precaches everything (including the word lists),
   so it works with no network and installs to your home screen.
 - **Accessible** — keyboard play, focus rings, `prefers-reduced-motion`, and a

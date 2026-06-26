@@ -33,6 +33,8 @@
     <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
     <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></symbol>
     <symbol id="i-back" viewBox="0 0 24 24"><path d="M21 18H8a2 2 0 0 1-1.42-.587l-3.994-4a2 2 0 0 1 0-2.826l3.994-4A2 2 0 0 1 8 6h13a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="m12 9 4 6"/><path d="m16 9-4 6"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
   </svg>
 
   <div class="crt" aria-hidden="true"></div>
@@ -40,6 +42,8 @@
   <main class="app">
     <header class="topbar">
       <h1 class="logo">ZOZ<b>DLE</b></h1>
+      <button class="icon-btn" id="btn-compete" aria-label="Leaderboards & leagues"><svg class="ic"><use href="#i-trophy"/></svg></button>
+      <button class="icon-btn" id="btn-account" aria-label="Account"><svg class="ic"><use href="#i-user"/></svg></button>
       <button class="icon-btn" id="btn-help" aria-label="How to play"><svg class="ic"><use href="#i-help"/></svg></button>
       <button class="icon-btn" id="btn-stats" aria-label="Statistics"><svg class="ic"><use href="#i-stats"/></svg></button>
       <button class="icon-btn" id="btn-settings" aria-label="Settings"><svg class="ic"><use href="#i-settings"/></svg></button>
@@ -102,13 +106,16 @@
         <div class="stat"><div class="num" id="st-max">0</div><div class="lbl">Max</div></div>
       </div>
 
-      <p class="lbl" style="text-transform:uppercase;color:var(--faint);font-size:14px;margin:0 0 6px">Guess distribution</p>
-      <div class="dist" id="dist"></div>
+      <div id="dist-section">
+        <p class="lbl" style="text-transform:uppercase;color:var(--faint);font-size:12px;margin:0 0 6px">Guess distribution</p>
+        <div class="dist" id="dist"></div>
+      </div>
 
       <div id="countdown-wrap" class="countdown hidden">Next Zozdle in <b id="countdown">--:--:--</b></div>
 
       <div class="btn-row">
         <button class="btn btn-primary" id="btn-share"><svg class="ic" style="width:20px;height:20px"><use href="#i-share"/></svg> Share</button>
+        <button class="btn btn-ghost hidden" id="btn-leaderboard">Leaderboards</button>
         <button class="btn btn-ghost hidden" id="btn-newpractice">New random word</button>
       </div>
     </div>
@@ -137,9 +144,37 @@
     </div>
   </div>
 
+  <!-- ===== Account / sign-in ===== -->
+  <div class="backdrop" id="m-account" role="dialog" aria-modal="true" aria-labelledby="account-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="account-title">Account</h2>
+        <button class="icon-btn" data-close aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button>
+      </div>
+      <div id="account-body"></div>
+    </div>
+  </div>
+
+  <!-- ===== Compete: leaderboards + leagues ===== -->
+  <div class="backdrop" id="m-compete" role="dialog" aria-modal="true" aria-labelledby="compete-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="compete-title">Compete</h2>
+        <button class="icon-btn" data-close aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="tabs">
+        <button class="tab" id="tab-global" aria-pressed="true">Global</button>
+        <button class="tab" id="tab-leagues" aria-pressed="false">Leagues</button>
+      </div>
+      <div id="compete-body"></div>
+    </div>
+  </div>
+
   <script src="js/words-answers.js"></script>
   <script src="js/words-valid.js"></script>
   <script src="js/config.js"></script>
+  <script src="js/vendor/supabase.js"></script>
+  <script src="js/online.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

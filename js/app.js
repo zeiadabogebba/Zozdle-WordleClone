@@ -23,6 +23,10 @@
     return VALID;
   }
 
+  // online (Supabase) helpers — present only when signed in
+  function onlineDaily() { const o = window.ZOZDLE_ONLINE; return !!(o && o.enabled && o.user); }
+  function patToEval(pat) { const m = { G: "correct", Y: "present", X: "absent" }; return pat.split("").map((c) => m[c] || "absent"); }
+
   /* ---------- storage ---------- */
   const KEY = { daily: "zozdle-daily-v1", stats: "zozdle-stats-v1", set: "zozdle-settings-v1", seen: "zozdle-seen-help" };
   const load = (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } };
@@ -212,12 +216,34 @@
     row.addEventListener("animationend", () => row.classList.remove("shake"), { once: true });
   }
 
-  function submit() {
+  async function submit() {
     const guess = state.current;
     if (guess.length < state.len) return shakeRow("Not enough letters", true);
     if (!validSet().has(guess)) return shakeRow("Not in word list", true);
     const he = hardError(guess);
     if (he) return shakeRow(he, true);
+
+    // server-authoritative daily: the answer lives on the server; it scores the guess
+    if (state.server) {
+      locked = true;
+      const res = await window.ZOZDLE_ONLINE.submitGuess(guess);
+      locked = false;
+      if (res.error) {
+        const msg = { length: "Not enough letters", invalid: "Not in word list",
+          finished: "Already finished", no_attempts: "No guesses left",
+          auth: "Please sign in", network: "Connection error — try again" }[res.error] || "Try again";
+        return shakeRow(msg, true);
+      }
+      const ev = patToEval(res.pattern);
+      state.guesses.push(guess);
+      state.evals.push(ev);
+      const row = state.row;
+      state.row++;
+      state.current = "";
+      if (res.finished) { state.done = true; state.win = res.solved; state.answer = res.word; }
+      revealRow(row, ev, guess);
+      return;
+    }
 
     const ev = evaluate(guess, state.answer);
     state.guesses.push(guess);
@@ -270,12 +296,14 @@
     }
     state.done = true; state.win = true;
     toast(["Genius!", "Magnificent!", "Impressive!", "Splendid!", "Great!", "Phew!"][r] || "Solved!");
-    if (state.mode === "daily") { recordStats(true, r + 1); persistDaily(); }
+    if (state.server) { const o = window.ZOZDLE_ONLINE; o && o.refreshProfile && o.refreshProfile(); }
+    else if (state.mode === "daily") { recordStats(true, r + 1); persistDaily(); }
     setTimeout(openStats, 1500);
   }
   function onLose() {
     state.done = true; state.win = false;
-    if (state.mode === "daily") { recordStats(false, 0); persistDaily(); }
+    if (state.server) { const o = window.ZOZDLE_ONLINE; o && o.refreshProfile && o.refreshProfile(); }
+    else if (state.mode === "daily") { recordStats(false, 0); persistDaily(); }
     setTimeout(openStats, 900);
   }
 
@@ -297,7 +325,7 @@
 
   /* ---------- persistence (daily resume) ---------- */
   function persistDaily() {
-    if (state.mode !== "daily") return;
+    if (state.mode !== "daily" || state.server) return; // server games persist server-side
     save(KEY.daily, { di: state.di, len: state.len, answer: state.answer, guesses: state.guesses, done: state.done, win: state.win });
   }
 
@@ -311,6 +339,19 @@
 
     state = { mode: "daily", di, len: p.len, answer: p.word || p.word, guesses: [], evals: [], row: 0, current: "", done: false, win: false };
     if (saved && saved.di === di) replay(saved);
+    setupBoard();
+  }
+  async function startDailyServer() {
+    let res;
+    try { res = await window.ZOZDLE_ONLINE.dailyStatus(); }
+    catch (e) { toast("Couldn't reach the daily — playing offline", true); return startDaily(); }
+    const evals = (res.patterns || []).map(patToEval);
+    state = {
+      mode: "daily", server: true, di: res.number - 1, len: res.length,
+      answer: res.word || null, guesses: (res.guesses || []).slice(),
+      evals, row: evals.length, current: "",
+      done: !!res.finished, win: !!res.solved,
+    };
     setupBoard();
   }
   function startPractice() {
@@ -405,24 +446,38 @@
   function closeModals() { document.querySelectorAll(".backdrop.open").forEach((b) => b.classList.remove("open")); }
 
   function openStats() {
-    const s = load(KEY.stats, blankStats());
-    $("#st-played").textContent = s.played;
-    $("#st-win").textContent = s.played ? Math.round((s.wins / s.played) * 100) : 0;
-    $("#st-streak").textContent = s.cur;
-    $("#st-max").textContent = s.max;
-
-    const maxBar = Math.max(1, ...Object.values(s.dist));
-    const distEl = $("#dist");
-    distEl.innerHTML = "";
-    const curTries = state.done && state.win && state.mode === "daily" ? state.guesses.length : -1;
-    for (let i = 1; i <= ROWS; i++) {
-      const n = s.dist[i] || 0;
-      const wrap = document.createElement("div");
-      wrap.className = "dist-row";
-      wrap.innerHTML =
-        `<span>${i}</span><span class="dist-bar${i === curTries ? " cur" : ""}" style="width:${Math.max(8, (n / maxBar) * 100)}%">${n}</span>`;
-      distEl.appendChild(wrap);
+    const o = window.ZOZDLE_ONLINE;
+    const distSection = $("#dist-section");
+    if (state && state.server && o && o.profile) {
+      // signed-in server game: show authoritative profile stats, hide local distribution
+      const p = o.profile;
+      $("#st-played").textContent = p.total_played;
+      $("#st-win").textContent = p.total_played ? Math.round((p.total_wins / p.total_played) * 100) : 0;
+      $("#st-streak").textContent = p.current_streak;
+      $("#st-max").textContent = p.max_streak;
+      if (distSection) distSection.classList.add("hidden");
+    } else {
+      const s = load(KEY.stats, blankStats());
+      $("#st-played").textContent = s.played;
+      $("#st-win").textContent = s.played ? Math.round((s.wins / s.played) * 100) : 0;
+      $("#st-streak").textContent = s.cur;
+      $("#st-max").textContent = s.max;
+      if (distSection) distSection.classList.remove("hidden");
+      const maxBar = Math.max(1, ...Object.values(s.dist));
+      const distEl = $("#dist");
+      distEl.innerHTML = "";
+      const curTries = state.done && state.win && state.mode === "daily" ? state.guesses.length : -1;
+      for (let i = 1; i <= ROWS; i++) {
+        const n = s.dist[i] || 0;
+        const wrap = document.createElement("div");
+        wrap.className = "dist-row";
+        wrap.innerHTML =
+          `<span>${i}</span><span class="dist-bar${i === curTries ? " cur" : ""}" style="width:${Math.max(8, (n / maxBar) * 100)}%">${n}</span>`;
+        distEl.appendChild(wrap);
+      }
     }
+    const lbBtn = $("#btn-leaderboard");
+    if (lbBtn) lbBtn.classList.toggle("hidden", !(o && o.enabled && o.user));
 
     // end banner / reveal word
     const banner = $("#end-banner");
@@ -455,7 +510,7 @@
       const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
       const sec = String(s % 60).padStart(2, "0");
       $("#countdown").textContent = `${h}:${m}:${sec}`;
-      if (s <= 0) { clearInterval(cdTimer); startDaily(); }
+      if (s <= 0) { clearInterval(cdTimer); setMode("daily"); }
     };
     tick();
     cdTimer = setInterval(tick, 1000);
@@ -473,12 +528,21 @@
   function setMode(mode) {
     $("#mode-daily").setAttribute("aria-pressed", String(mode === "daily"));
     $("#mode-practice").setAttribute("aria-pressed", String(mode === "practice"));
-    if (mode === "daily") startDaily();
+    if (mode === "daily") { if (onlineDaily()) startDailyServer(); else startDaily(); }
     else startPractice();
   }
 
   /* ---------- wire up ---------- */
+  let inited = false;
   function init() {
+    if (inited) return; // guard against a double DOMContentLoaded
+    inited = true;
+    // hooks for the online layer (js/online.js)
+    window.ZOZDLE_GAME = {
+      toast,
+      isDaily: () => !!(state && state.mode === "daily"),
+      reloadDaily: () => { if (state && state.mode === "daily") setMode("daily"); },
+    };
     buildKeyboard();
     applySettings();
     setMode("daily");
@@ -491,6 +555,8 @@
     $("#mode-practice").addEventListener("click", () => setMode("practice"));
     $("#btn-share").addEventListener("click", share);
     $("#btn-newpractice").addEventListener("click", () => { closeModals(); startPractice(); });
+    const lbBtn = $("#btn-leaderboard");
+    if (lbBtn) lbBtn.addEventListener("click", () => { const o = window.ZOZDLE_ONLINE; if (o && o.openCompete) o.openCompete(); });
 
     // settings toggles
     $("#set-hard").addEventListener("change", (e) => {
