@@ -28,7 +28,7 @@
   function patToEval(pat) { const m = { G: "correct", Y: "present", X: "absent" }; return pat.split("").map((c) => m[c] || "absent"); }
 
   /* ---------- storage ---------- */
-  const KEY = { daily: "zozdle-daily-v1", stats: "zozdle-stats-v1", set: "zozdle-settings-v1", seen: "zozdle-seen-help" };
+  const KEY = { daily: "zozdle-daily-v1", practice: "zozdle-practice-v1", stats: "zozdle-stats-v1", set: "zozdle-settings-v1", seen: "zozdle-seen-help" };
   const load = (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
@@ -265,7 +265,7 @@
       locked = false;
       if (win) onWin(r);
       else if (state.row >= ROWS) onLose();
-      else persistDaily();
+      else persistGame();
     };
 
     if (settings.motion) {
@@ -297,13 +297,13 @@
     state.done = true; state.win = true;
     toast(["Genius!", "Magnificent!", "Impressive!", "Splendid!", "Great!", "Phew!"][r] || "Solved!");
     if (state.server) { const o = window.ZOZDLE_ONLINE; o && o.refreshProfile && o.refreshProfile(); }
-    else if (state.mode === "daily") { recordStats(true, r + 1); persistDaily(); }
+    else { if (state.mode === "daily") recordStats(true, r + 1); persistGame(); }
     setTimeout(openStats, 1500);
   }
   function onLose() {
     state.done = true; state.win = false;
     if (state.server) { const o = window.ZOZDLE_ONLINE; o && o.refreshProfile && o.refreshProfile(); }
-    else if (state.mode === "daily") { recordStats(false, 0); persistDaily(); }
+    else { if (state.mode === "daily") recordStats(false, 0); persistGame(); }
     setTimeout(openStats, 900);
   }
 
@@ -327,6 +327,25 @@
   function persistDaily() {
     if (state.mode !== "daily" || state.server) return; // server games persist server-side
     save(KEY.daily, { di: state.di, len: state.len, answer: state.answer, guesses: state.guesses, done: state.done, win: state.win });
+  }
+  function persistPractice() {
+    if (state.mode !== "practice") return;
+    save(KEY.practice, { len: state.len, answer: state.answer, guesses: state.guesses, done: state.done, win: state.win });
+  }
+  function persistGame() {
+    if (state.server) return;
+    if (state.mode === "daily") persistDaily();
+    else if (state.mode === "practice") persistPractice();
+  }
+  function resumePractice(saved) {
+    state = { mode: "practice", di: null, len: saved.len, answer: saved.answer, guesses: [], evals: [], row: 0, current: "", done: !!saved.done, win: !!saved.win };
+    (saved.guesses || []).forEach((g) => { state.guesses.push(g); state.evals.push(evaluate(g, saved.answer)); });
+    state.row = state.guesses.length;
+    setupBoard();
+  }
+  function promptResume(saved) {
+    resumePractice(saved);    // show the in-progress game behind the prompt
+    openModal("#m-resume");   // dismissing the prompt = continue (no progress lost)
   }
 
   /* ---------- new game ---------- */
@@ -358,6 +377,7 @@
     const p = randomPuzzle();
     state = { mode: "practice", di: null, len: p.len, answer: p.word, guesses: [], evals: [], row: 0, current: "", done: false, win: false };
     setupBoard();
+    persistPractice();
   }
   function replay(saved) {
     saved.guesses.forEach((g) => {
@@ -529,7 +549,13 @@
     $("#mode-daily").setAttribute("aria-pressed", String(mode === "daily"));
     $("#mode-practice").setAttribute("aria-pressed", String(mode === "practice"));
     if (mode === "daily") { if (onlineDaily()) startDailyServer(); else startDaily(); }
-    else startPractice();
+    else {
+      if (state && state.mode === "practice") return;      // already in practice
+      const saved = load(KEY.practice, null);
+      if (saved && !saved.done && (saved.guesses || []).length > 0) promptResume(saved); // ask
+      else if (saved && !saved.done) resumePractice(saved); // in progress but no guesses → just resume
+      else startPractice();                                  // none or finished → fresh word
+    }
   }
 
   /* ---------- wire up ---------- */
@@ -555,6 +581,8 @@
     $("#mode-practice").addEventListener("click", () => setMode("practice"));
     $("#btn-share").addEventListener("click", share);
     $("#btn-newpractice").addEventListener("click", () => { closeModals(); startPractice(); });
+    $("#resume-continue").addEventListener("click", closeModals); // board already shows the resumed game
+    $("#resume-reset").addEventListener("click", () => { closeModals(); startPractice(); });
     const lbBtn = $("#btn-leaderboard");
     if (lbBtn) lbBtn.addEventListener("click", () => { const o = window.ZOZDLE_ONLINE; if (o && o.openCompete) o.openCompete(); });
 
