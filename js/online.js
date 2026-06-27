@@ -49,7 +49,7 @@
     m.classList.add("open");
   };
   const closeModals = () => document.querySelectorAll(".backdrop.open").forEach((b) => b.classList.remove("open"));
-  const todayUTC = () => new Date().toISOString().slice(0, 10);
+  const localDate = () => { const d = new Date(), p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
 
   /* ---------- session / profile ---------- */
   async function loadProfile() {
@@ -90,8 +90,8 @@
   });
 
   /* ---------- game RPCs ---------- */
-  O.dailyStatus = async () => { const { data, error } = await sb.rpc("daily_status"); if (error) throw error; return data; };
-  O.submitGuess = async (g) => { const { data, error } = await sb.rpc("submit_guess", { p_guess: g }); return error ? { error: "network" } : data; };
+  O.dailyStatus = async () => { const { data, error } = await sb.rpc("daily_status", { p_date: localDate() }); if (error) throw error; return data; };
+  O.submitGuess = async (g) => { const { data, error } = await sb.rpc("submit_guess", { p_guess: g, p_date: localDate() }); return error ? { error: "network" } : data; };
 
   /* ---------- auth actions ---------- */
   let pendingEmail = "";
@@ -259,7 +259,7 @@
     const showGrids = async () => {
       gBtn.classList.add("on"); bBtn.classList.remove("on"); db.innerHTML = loading;
       try {
-        const rows = await O.leagueGrids(id, todayUTC());
+        const rows = await O.leagueGrids(id, localDate());
         db.innerHTML = rows.length ? rows.map(gridCard).join("")
           : `<p class="empty">🔒 Finish today's Zozdle to reveal everyone's grids.</p>`;
       } catch { db.innerHTML = `<p class="empty">Couldn't load grids.</p>`; }

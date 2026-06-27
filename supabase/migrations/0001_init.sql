@@ -155,10 +155,19 @@ begin
   return array_to_string(res, '');
 end $$;
 
--- ensure today's secret word exists (lazy, race-safe)
-create or replace function public.get_daily()
+-- the player's local date, clamped to ±1 day of UTC. Lets the daily flip at the
+-- player's local midnight without letting anyone jump to an arbitrary day.
+create or replace function public.clamp_date(p_date date)
+returns date language sql stable as $$
+  select greatest((now() at time zone 'utc')::date - 1,
+                  least((now() at time zone 'utc')::date + 1,
+                        coalesce(p_date, (now() at time zone 'utc')::date)));
+$$;
+
+-- ensure that day's secret word exists (lazy, race-safe)
+create or replace function public.get_daily(p_date date)
 returns void language plpgsql security definer set search_path = public as $$
-declare d date := (now() at time zone 'utc')::date;
+declare d date := clamp_date(p_date);
 begin
   if not exists (select 1 from daily_words w where w.puzzle_date = d) then
     insert into daily_words (puzzle_date, length, word)
@@ -168,11 +177,11 @@ begin
 end $$;
 
 -- full status for the signed-in user (no word unless finished)
-create or replace function public.daily_status()
+create or replace function public.daily_status(p_date date default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare d date := (now() at time zone 'utc')::date; w record; p record;
+declare d date := clamp_date(p_date); w record; p record;
 begin
-  perform get_daily();
+  perform get_daily(d);
   select * into w from daily_words where puzzle_date = d;
   select * into p from plays where user_id = auth.uid() and puzzle_date = d;
   return jsonb_build_object(
@@ -210,18 +219,18 @@ begin
 end $$;
 
 -- THE move: score one guess server-side, record it, return colours only
-create or replace function public.submit_guess(p_guess text)
+create or replace function public.submit_guess(p_guess text, p_date date default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
   uid uuid := auth.uid();
-  d   date := (now() at time zone 'utc')::date;
+  d   date := clamp_date(p_date);
   w   record; p record;
   g   text := lower(trim(p_guess));
   pat text; new_patterns text[]; new_guesses text[]; used int;
   is_solved boolean; is_finished boolean;
 begin
   if uid is null then return jsonb_build_object('error', 'auth'); end if;
-  perform get_daily();
+  perform get_daily(d);
   select * into w from daily_words where puzzle_date = d;
 
   if char_length(g) <> w.length then return jsonb_build_object('error', 'length'); end if;
@@ -373,9 +382,9 @@ grant select on public.profiles to anon, authenticated;
 grant select on public.plays to authenticated;
 grant select on public.leagues, public.league_members to authenticated;
 
-grant execute on function public.daily_status(), public.global_board(int) to anon, authenticated;
+grant execute on function public.daily_status(date), public.global_board(int) to anon, authenticated;
 grant execute on function
-  public.submit_guess(text), public.set_username(text),
+  public.submit_guess(text, date), public.set_username(text),
   public.create_league(text), public.join_league(text), public.my_leagues(),
   public.league_board(uuid), public.league_day_grids(uuid, date)
   to authenticated;

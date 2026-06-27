@@ -79,7 +79,9 @@ blank keeps Zozdle running as the pure offline single-player game.
 - `league_day_grids(league, date)` returns a friend's grid **only if you have
   finished that day's puzzle**, and only as colour patterns — never letters.
 - Streaks rank by *active* current streak (resets on a miss or loss; a stale streak
-  shows 0 automatically — no cron needed). The daily rolls over at **00:00 UTC**.
+  shows 0 automatically — no cron needed). The daily flips at each player's **local
+  midnight**: the client sends its local date and the server clamps it to ±1 day of
+  UTC, so everyone on the same calendar date gets the same word and nobody can jump ahead.
 
 ## The client is wired up
 Once the steps above are done and `js/config.js` has your keys, the app already
