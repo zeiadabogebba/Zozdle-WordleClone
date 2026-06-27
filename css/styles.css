@@ -219,6 +219,8 @@ body::after {
 }
 .subline .len { color: var(--amber); text-shadow: 0 0 10px var(--amber-glow); }
 .subline .dot { color: var(--faint); }
+#sub-answer { color: var(--green); font-weight: 700; letter-spacing: 2px; text-shadow: 0 0 10px var(--green-glow); }
+#sub-answer.lose { color: var(--bad); text-shadow: none; }
 
 /* ---------------- board ---------------- */
 .board-wrap {

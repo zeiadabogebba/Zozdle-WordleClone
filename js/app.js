@@ -302,7 +302,7 @@
       else if (state.mode === "archive") recordStatsNoStreak(true, r + 1);
       persistGame();
     }
-    if (state.mode === "archive") return; // archive: no daily stats modal
+    if (state.mode === "archive") { revealSubline(); return; } // archive: reveal in subline, no stats modal
     setTimeout(openStats, 1500);
   }
   function onLose() {
@@ -313,7 +313,7 @@
       else if (state.mode === "archive") recordStatsNoStreak(false, 0);
       persistGame();
     }
-    if (state.mode === "archive") { toast("The word was " + state.answer.toUpperCase(), true); return; }
+    if (state.mode === "archive") { revealSubline(); toast("The word was " + state.answer.toUpperCase(), true); return; }
     setTimeout(openStats, 900);
   }
 
@@ -411,10 +411,25 @@
     state.row = state.guesses.length;
     state.done = saved.done; state.win = saved.win;
   }
+  // for a finished archive game, reveal the answer in the subline (it has no stats modal)
+  function revealSubline() {
+    const meta = $("#sub-meta"), ans = $("#sub-answer");
+    if (!meta || !ans) return;
+    if (state.mode === "archive" && state.done && state.answer) {
+      ans.textContent = state.answer.toUpperCase();
+      ans.classList.toggle("lose", !state.win);
+      ans.classList.remove("hidden");
+      meta.classList.add("hidden");
+    } else {
+      ans.classList.add("hidden");
+      meta.classList.remove("hidden");
+    }
+  }
   function setupBoard() {
     buildBoard(state.len);
     subMode.textContent = state.mode === "daily" ? "Daily" : state.mode === "archive" ? "Archive" : "Practice";
     subLen.textContent = state.len;
+    revealSubline();
     // paint any replayed rows instantly
     state.evals.forEach((ev, r) => {
       for (let i = 0; i < state.len; i++) {
