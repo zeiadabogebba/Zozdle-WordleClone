@@ -58,7 +58,7 @@ body {
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow: hidden;
+  overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
@@ -221,36 +221,31 @@ body::after {
 
 /* ---------------- board ---------------- */
 .board-wrap {
-  flex: 1 1 auto;
-  min-height: 0; /* allow the board to shrink to fit, never overflow */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 0;
-}
-/* the board fills the available box: height-bound by the row, width-bound by max-width,
-   aspect-ratio keeps the cells square so it always fits on one screen */
-.board {
-  --cols: 5;
+  flex: 1;
+  min-height: 0;            /* let the board shrink so it never overflows */
   display: grid;
-  grid-template-rows: repeat(6, 1fr);
-  gap: clamp(4px, 1.1vmin, 7px);
-  height: 100%;
-  aspect-ratio: var(--cols) / 6;
-  max-width: 100%;
-  container-type: size;
+  place-items: center;
+  padding: 6px 0;
+  container-type: size;     /* expose available height to the tiles (cqh) */
+}
+.board {
+  display: grid;
+  grid-auto-rows: 1fr;
+  gap: 7px;
+  --cols: 5;
 }
 .row {
   display: grid;
   grid-template-columns: repeat(var(--cols), 1fr);
-  gap: clamp(4px, 1.1vmin, 7px);
+  gap: 7px;
 }
 .tile {
+  /* same square tile as before, but also capped to the height that fits 6 rows */
+  width: min(clamp(40px, 13.5vw, 60px), calc((100cqh - 35px) / 6));
   aspect-ratio: 1;
-  min-width: 0;
   display: grid;
   place-items: center;
-  font-size: clamp(16px, 8.4cqh, 34px); /* scales with the board's actual size */
+  font-size: min(clamp(21px, 6.2vw, 31px), calc((100cqh - 35px) / 12));
   font-weight: 600;
   line-height: 1;
   text-transform: uppercase;
@@ -316,10 +311,9 @@ body::after {
 
 /* ---------------- keyboard ---------------- */
 .keyboard {
-  flex: 0 0 auto;
   display: grid;
-  gap: clamp(4px, 1vmin, 7px);
-  padding: 6px 0 8px;
+  gap: 7px;
+  padding: 10px 0 16px;
 }
 .krow {
   display: flex;
@@ -330,7 +324,7 @@ body::after {
   appearance: none;
   flex: 1;
   min-width: 0;
-  height: clamp(40px, 6.4dvh, 54px);
+  height: 54px;
   border: 1px solid var(--line);
   border-radius: var(--r);
   background: var(--surface-2);
@@ -588,9 +582,8 @@ body::after {
 
 /* ---------------- responsive ---------------- */
 @media (max-height: 700px) {
+  .key { height: 46px; }
   .logo { font-size: 14px; }
-  .modes { margin: 6px 0 0; }
-  .subline { padding: 4px 0 0; min-height: 20px; }
 }
 
 /* ---------------- reduced motion ---------------- */
