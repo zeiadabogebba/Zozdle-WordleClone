@@ -61,7 +61,7 @@ alter table public.valid_words enable row level security;
 -- ---------------- daily words (SECRET) ----------------
 create table if not exists public.daily_words (
   puzzle_date   date primary key,
-  puzzle_number int generated always as ((puzzle_date - date '2025-01-01') + 1) stored,
+  puzzle_number int generated always as ((puzzle_date - date '2026-06-25') + 1) stored,
   length        int  not null,
   word          text not null
 );

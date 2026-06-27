@@ -297,14 +297,22 @@
     state.done = true; state.win = true;
     toast(["Genius!", "Magnificent!", "Impressive!", "Splendid!", "Great!", "Phew!"][r] || "Solved!");
     if (state.server) { const o = window.ZOZDLE_ONLINE; o && o.refreshProfile && o.refreshProfile(); }
-    else { if (state.mode === "daily") recordStats(true, r + 1); persistGame(); }
+    else {
+      if (state.mode === "daily") recordStats(true, r + 1);
+      else if (state.mode === "archive") recordStatsNoStreak(true, r + 1);
+      persistGame();
+    }
     if (state.mode === "archive") return; // archive: no daily stats modal
     setTimeout(openStats, 1500);
   }
   function onLose() {
     state.done = true; state.win = false;
     if (state.server) { const o = window.ZOZDLE_ONLINE; o && o.refreshProfile && o.refreshProfile(); }
-    else { if (state.mode === "daily") recordStats(false, 0); persistGame(); }
+    else {
+      if (state.mode === "daily") recordStats(false, 0);
+      else if (state.mode === "archive") recordStatsNoStreak(false, 0);
+      persistGame();
+    }
     if (state.mode === "archive") { toast("The word was " + state.answer.toUpperCase(), true); return; }
     setTimeout(openStats, 900);
   }
@@ -322,6 +330,13 @@
       s.max = Math.max(s.max, s.cur);
     } else { s.cur = 0; }
     s.lastDay = state.di;
+    save(KEY.stats, s);
+  }
+  // archive games count toward played / win% / distribution, but never the streak
+  function recordStatsNoStreak(win, tries) {
+    const s = load(KEY.stats, blankStats());
+    s.played++;
+    if (win) { s.wins++; s.dist[tries] = (s.dist[tries] || 0) + 1; }
     save(KEY.stats, s);
   }
 

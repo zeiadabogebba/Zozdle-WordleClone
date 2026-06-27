@@ -5,7 +5,7 @@
 
    Tweak the knobs below to retune the game. */
 window.ZOZDLE_CONFIG = {
-  launch: "2025-01-01",   // date of puzzle #1 (drives the daily number)
+  launch: "2026-06-25",   // date of puzzle #1 (drives the daily number + archive start)
   rows: 6,                // guesses allowed
   lengths: [4, 5, 6],     // the daily word is randomly one of these lengths
 };
