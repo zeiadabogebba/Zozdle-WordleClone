@@ -51,6 +51,7 @@
 
     <div class="modes" role="group" aria-label="Game mode">
       <button class="mode" id="mode-daily" aria-pressed="true">Daily</button>
+      <button class="mode" id="mode-archive" aria-pressed="false">Archive</button>
       <button class="mode" id="mode-practice" aria-pressed="false">Practice</button>
     </div>
 
@@ -141,6 +142,18 @@
         <label class="switch"><input type="checkbox" id="set-motion"><span class="track"></span><span class="thumb"></span></label>
       </div>
       <p style="font-size:15px;color:var(--faint);margin-top:14px;text-align:center">Zozdle · a neon word game</p>
+    </div>
+  </div>
+
+  <!-- ===== Archive calendar ===== -->
+  <div class="backdrop" id="m-archive" role="dialog" aria-modal="true" aria-labelledby="archive-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="archive-title">Archive</h2>
+        <button class="icon-btn" data-close aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button>
+      </div>
+      <p class="cal-legend">Play past puzzles · <span class="dot done"></span> played · <span class="dot miss"></span> missed · <span class="dot today"></span> today</p>
+      <div id="archive-cal" class="cal"></div>
     </div>
   </div>
 

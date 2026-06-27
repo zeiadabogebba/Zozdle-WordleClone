@@ -28,7 +28,7 @@
   function patToEval(pat) { const m = { G: "correct", Y: "present", X: "absent" }; return pat.split("").map((c) => m[c] || "absent"); }
 
   /* ---------- storage ---------- */
-  const KEY = { daily: "zozdle-daily-v1", practice: "zozdle-practice-v1", stats: "zozdle-stats-v1", set: "zozdle-settings-v1", seen: "zozdle-seen-help" };
+  const KEY = { daily: "zozdle-daily-v1", practice: "zozdle-practice-v1", archive: "zozdle-archive-v1", stats: "zozdle-stats-v1", set: "zozdle-settings-v1", seen: "zozdle-seen-help" };
   const load = (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
@@ -298,12 +298,14 @@
     toast(["Genius!", "Magnificent!", "Impressive!", "Splendid!", "Great!", "Phew!"][r] || "Solved!");
     if (state.server) { const o = window.ZOZDLE_ONLINE; o && o.refreshProfile && o.refreshProfile(); }
     else { if (state.mode === "daily") recordStats(true, r + 1); persistGame(); }
+    if (state.mode === "archive") return; // archive: no daily stats modal
     setTimeout(openStats, 1500);
   }
   function onLose() {
     state.done = true; state.win = false;
     if (state.server) { const o = window.ZOZDLE_ONLINE; o && o.refreshProfile && o.refreshProfile(); }
     else { if (state.mode === "daily") recordStats(false, 0); persistGame(); }
+    if (state.mode === "archive") { toast("The word was " + state.answer.toUpperCase(), true); return; }
     setTimeout(openStats, 900);
   }
 
@@ -332,10 +334,17 @@
     if (state.mode !== "practice") return;
     save(KEY.practice, { len: state.len, answer: state.answer, guesses: state.guesses, done: state.done, win: state.win });
   }
+  function persistArchive() {
+    if (state.mode !== "archive") return;
+    const a = load(KEY.archive, {});
+    a[state.di] = { guesses: state.guesses, done: state.done, win: state.win };
+    save(KEY.archive, a);
+  }
   function persistGame() {
     if (state.server) return;
     if (state.mode === "daily") persistDaily();
     else if (state.mode === "practice") persistPractice();
+    else if (state.mode === "archive") persistArchive();
   }
   function resumePractice(saved) {
     state = { mode: "practice", di: null, len: saved.len, answer: saved.answer, guesses: [], evals: [], row: 0, current: "", done: !!saved.done, win: !!saved.win };
@@ -389,7 +398,7 @@
   }
   function setupBoard() {
     buildBoard(state.len);
-    subMode.textContent = state.mode === "daily" ? "Daily" : "Practice";
+    subMode.textContent = state.mode === "daily" ? "Daily" : state.mode === "archive" ? "Archive" : "Practice";
     subLen.textContent = state.len;
     // paint any replayed rows instantly
     state.evals.forEach((ev, r) => {
@@ -545,9 +554,13 @@
   }
 
   /* ---------- mode switch ---------- */
-  function setMode(mode) {
+  function syncTabs(mode) {
     $("#mode-daily").setAttribute("aria-pressed", String(mode === "daily"));
+    $("#mode-archive").setAttribute("aria-pressed", String(mode === "archive"));
     $("#mode-practice").setAttribute("aria-pressed", String(mode === "practice"));
+  }
+  function setMode(mode) {
+    syncTabs(mode);
     if (mode === "daily") { if (onlineDaily()) startDailyServer(); else startDaily(); }
     else {
       if (state && state.mode === "practice") return;      // already in practice
@@ -556,6 +569,68 @@
       else if (saved && !saved.done) resumePractice(saved); // in progress but no guesses → just resume
       else startPractice();                                  // none or finished → fresh word
     }
+  }
+
+  /* ---------- archive ---------- */
+  const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  function fmtDate(di) {
+    const d = new Date(EPOCH); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + di);
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  }
+  function loadArchive(di) {
+    const p = dailyPuzzle(di);
+    const rec = load(KEY.archive, {})[di];
+    state = { mode: "archive", di, len: p.len, answer: p.word, guesses: [], evals: [], row: 0, current: "", done: false, win: false };
+    if (rec) {
+      (rec.guesses || []).forEach((g) => { state.guesses.push(g); state.evals.push(evaluate(g, p.word)); });
+      state.row = state.guesses.length; state.done = !!rec.done; state.win = !!rec.win;
+    }
+    syncTabs("archive");
+    setupBoard();
+    subMode.textContent = "Archive · " + fmtDate(di);
+  }
+  function openArchive() { buildCalendar(); openModal("#m-archive"); }
+  function selectArchiveDay(di) {
+    if (load(KEY.archive, {})[di]?.done) return toast("You already guessed this word!");
+    closeModals();
+    loadArchive(di);
+  }
+  function buildCalendar() {
+    const cal = $("#archive-cal");
+    const archive = load(KEY.archive, {});
+    const todayDi = dayIndex();
+    const start = new Date(EPOCH); start.setHours(0, 0, 0, 0);
+    const now = new Date();
+    let y = start.getFullYear(), m = start.getMonth();
+    const endY = now.getFullYear(), endM = now.getMonth();
+    let html = `<div class="cal-dow">${["S", "M", "T", "W", "T", "F", "S"].map((d) => `<span>${d}</span>`).join("")}</div>`;
+    while (y < endY || (y === endY && m <= endM)) {
+      html += `<div class="cal-month">${MONTHS[m]} ${y}</div><div class="cal-grid">`;
+      const lead = new Date(y, m, 1).getDay();
+      for (let i = 0; i < lead; i++) html += `<span class="cal-cell blank"></span>`;
+      const days = new Date(y, m + 1, 0).getDate();
+      for (let d = 1; d <= days; d++) {
+        const cd = new Date(y, m, d); cd.setHours(0, 0, 0, 0);
+        const di = dayIndex(cd);
+        let cls = "cal-cell", click = false;
+        if (di < 0) cls += " blank";
+        else if (di > todayDi) cls += " future";
+        else {
+          const rec = archive[di];
+          if (rec && rec.done) cls += " done";
+          else if (rec) cls += " progress";
+          else if (di === todayDi) cls += " today";
+          else cls += " miss";
+          click = true;
+        }
+        html += `<button class="${cls}" ${click ? `data-di="${di}"` : "disabled"}>${di < 0 ? "" : d}</button>`;
+      }
+      html += `</div>`;
+      m++; if (m > 11) { m = 0; y++; }
+    }
+    cal.innerHTML = html;
+    cal.querySelectorAll("[data-di]").forEach((b) => (b.onclick = () => selectArchiveDay(+b.dataset.di)));
+    cal.scrollTop = cal.scrollHeight; // start at the most recent month
   }
 
   /* ---------- wire up ---------- */
@@ -578,6 +653,7 @@
     $("#btn-stats").addEventListener("click", openStats);
     $("#btn-settings").addEventListener("click", () => openModal("#m-settings"));
     $("#mode-daily").addEventListener("click", () => setMode("daily"));
+    $("#mode-archive").addEventListener("click", openArchive);
     $("#mode-practice").addEventListener("click", () => setMode("practice"));
     $("#btn-share").addEventListener("click", share);
     $("#btn-newpractice").addEventListener("click", () => { closeModals(); startPractice(); });
