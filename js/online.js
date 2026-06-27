@@ -149,10 +149,10 @@
         <label class="field-label" for="uname">Display name — shown on leaderboards</label>
         <input class="field" id="uname" maxlength="16" value="${esc(p.username || "")}" />
         <div class="btn-row"><button class="btn btn-primary" id="uname-save">Save name</button></div>
-        <div class="lb" style="margin-top:16px">
-          <div class="lb-row"><span class="lb-name">Current streak</span><span class="lb-streak">🔥 ${p.current_streak || 0}</span></div>
-          <div class="lb-row"><span class="lb-name">Max streak</span><span class="lb-streak">${p.max_streak || 0}</span></div>
-          <div class="lb-row"><span class="lb-name">Wins</span><span class="lb-streak">${p.total_wins || 0}</span></div>
+        <div class="kv-list" style="margin-top:16px">
+          <div class="kv"><span>Current streak</span><span class="v">🔥 ${p.current_streak || 0}</span></div>
+          <div class="kv"><span>Max streak</span><span class="v">${p.max_streak || 0}</span></div>
+          <div class="kv"><span>Wins</span><span class="v">${p.total_wins || 0}</span></div>
         </div>
         <div class="btn-row" style="margin-top:14px"><button class="btn btn-ghost" id="signout">Sign out</button></div>`;
       $("#uname-save").onclick = async () => {

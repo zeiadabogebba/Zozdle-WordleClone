@@ -553,6 +553,11 @@ body::after {
 .lb-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb-streak { color: var(--amber); font-weight: 700; white-space: nowrap; }
 
+/* account key/value rows (full label + value, no rank column) */
+.kv-list { display: grid; gap: 6px; }
+.kv { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 13px; border: 1px solid var(--line-soft); border-radius: var(--r); background: var(--surface); font-size: 15px; }
+.kv .v { color: var(--amber); font-weight: 700; white-space: nowrap; }
+
 /* leagues */
 .league-actions { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
 .league-actions .field { margin-top: 0; }
