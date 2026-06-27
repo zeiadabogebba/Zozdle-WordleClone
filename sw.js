@@ -1,7 +1,7 @@
 /* Zozdle service worker — offline-first.
    Precaches the app shell + bundled word lists so the game works with no
    network at all. Bump CACHE when any of these files change. */
-const CACHE = "zozdle-v7";
+const CACHE = "zozdle-v8";
 const ASSETS = [
   "./",
   "./index.html",

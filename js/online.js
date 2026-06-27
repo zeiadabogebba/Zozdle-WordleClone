@@ -94,12 +94,15 @@
   function openAccount() {
     const body = $("#account-body");
     if (!O.user) {
+      const standalone = matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
       body.innerHTML = `
-        <p>Sign in with a magic link — no password. We'll email you a link <em>and</em> a 6-digit code.</p>
+        <p>${standalone
+          ? "Enter your email and we'll send a <strong>6-digit code</strong>. Open the email, copy the code, and paste it below. <em>(In the installed app, use the code — the link opens Safari instead.)</em>"
+          : "Sign in with a magic link — no password. We'll email you a link <em>and</em> a 6-digit code."}</p>
         <input class="field" id="auth-email" type="email" inputmode="email" placeholder="you@email.com" autocomplete="email" />
-        <div class="btn-row"><button class="btn btn-primary" id="auth-send">Send magic link</button></div>
+        <div class="btn-row"><button class="btn btn-primary" id="auth-send">${standalone ? "Send code" : "Send magic link"}</button></div>
         <div id="auth-step2" class="hidden">
-          <p style="margin-top:12px">Check your inbox — click the link, or punch in the code:</p>
+          <p style="margin-top:12px">${standalone ? "Paste the 6-digit code from the email:" : "Check your inbox — click the link, or punch in the code:"}</p>
           <input class="field code-input" id="auth-code" inputmode="numeric" maxlength="6" placeholder="000000" />
           <div class="btn-row"><button class="btn btn-ghost" id="auth-verify">Enter code</button></div>
         </div>`;
@@ -109,7 +112,7 @@
         const btn = $("#auth-send"); btn.disabled = true;
         const { error } = await O.signIn(email); btn.disabled = false;
         if (error) return toast(error.message || "Couldn't send link", true);
-        pendingEmail = email; $("#auth-step2").classList.remove("hidden"); toast("Magic link sent ✦");
+        pendingEmail = email; $("#auth-step2").classList.remove("hidden"); $("#auth-code").focus(); toast("Code sent ✦ — check your email");
       };
       $("#auth-verify").onclick = async () => {
         const token = $("#auth-code").value.trim();
