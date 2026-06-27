@@ -586,10 +586,10 @@ body::after {
 .grid-res { color: var(--amber); font-weight: 700; }
 .mini-grid { display: grid; gap: 3px; }
 .mini-row { display: flex; gap: 3px; }
-.mini-cell { width: 16px; height: 16px; border-radius: 3px; background: var(--slate); }
-.mini-cell.g { background: var(--green); box-shadow: 0 0 8px -3px var(--green-glow); }
-.mini-cell.y { background: var(--amber); box-shadow: 0 0 8px -3px var(--amber-glow); }
-.mini-cell.x { background: var(--slate); }
+.mini-cell { width: 22px; height: 22px; border-radius: 4px; background: var(--slate); display: grid; place-items: center; font-family: var(--font); font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--muted); }
+.mini-cell.g { background: var(--green); color: #06140d; box-shadow: 0 0 8px -3px var(--green-glow); }
+.mini-cell.y { background: var(--amber); color: #1a1405; box-shadow: 0 0 8px -3px var(--amber-glow); }
+.mini-cell.x { background: var(--slate); color: var(--muted); }
 
 .loading, .empty { text-align: center; color: var(--faint); font-size: 16px; padding: 22px 8px; }
 

@@ -19,7 +19,9 @@
     return;
   }
 
-  const sb = window.supabase.createClient(cfg.url, cfg.anonKey);
+  const sb = window.supabase.createClient(cfg.url, cfg.anonKey, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+  });
 
   /* ---------- helpers ---------- */
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -54,9 +56,10 @@
   /* ---------- session / profile ---------- */
   async function loadProfile() {
     if (!O.user) { O.profile = null; return; }
-    const { data } = await sb.from("profiles")
+    const { data, error } = await sb.from("profiles")
       .select("username,current_streak,max_streak,total_wins,total_played")
       .eq("id", O.user.id).single();
+    if (error) console.warn("Zozdle: profile load failed —", error.message);
     O.profile = data || null;
   }
   O.refreshProfile = async () => { await loadProfile(); updateTopbar(); };
@@ -192,7 +195,7 @@
     try {
       const rows = await O.globalBoard();
       body.innerHTML = rows.length ? lbTable(rows) : `<p class="empty">No players yet — be the first to start a streak!</p>`;
-    } catch { body.innerHTML = `<p class="empty">Couldn't load the leaderboard.</p>`; }
+    } catch (e) { body.innerHTML = `<p class="empty">Couldn't load the leaderboard.<br><small>${esc(e && e.message || e)}</small></p>`; }
   }
 
   async function renderLeagues() {
@@ -229,13 +232,17 @@
         : `<p class="empty">No leagues yet. Create one and share the code with friends.</p>`;
       list.querySelectorAll(".league-item").forEach((b) =>
         b.onclick = () => renderLeagueDetail(b.dataset.id, b.dataset.name));
-    } catch { $("#lg-list").innerHTML = `<p class="empty">Couldn't load your leagues.</p>`; }
+    } catch (e) { $("#lg-list").innerHTML = `<p class="empty">Couldn't load your leagues.<br><small>${esc(e && e.message || e)}</small></p>`; }
   }
 
   function gridCard(r) {
     const cls = { G: "g", Y: "y", X: "x" };
-    const rows = (r.patterns || []).map((p) =>
-      `<div class="mini-row">` + p.split("").map((c) => `<span class="mini-cell ${cls[c] || "x"}"></span>`).join("") + `</div>`).join("");
+    const rows = (r.patterns || []).map((p, i) => {
+      const word = (r.guesses && r.guesses[i]) || "";
+      return `<div class="mini-row">` +
+        p.split("").map((c, j) => `<span class="mini-cell ${cls[c] || "x"}">${esc((word[j] || "").toUpperCase())}</span>`).join("") +
+        `</div>`;
+    }).join("");
     return `<div class="grid-card">
         <div class="grid-head"><span>${esc(r.username)}</span><span class="grid-res">${r.solved ? r.tries + "/6" : "X/6"}</span></div>
         <div class="mini-grid">${rows}</div>
@@ -254,7 +261,7 @@
     const showBoard = async () => {
       bBtn.classList.add("on"); gBtn.classList.remove("on"); db.innerHTML = loading;
       try { const rows = await O.leagueBoard(id); db.innerHTML = rows.length ? lbTable(rows) : `<p class="empty">No members yet.</p>`; }
-      catch { db.innerHTML = `<p class="empty">Couldn't load standings.</p>`; }
+      catch (e) { db.innerHTML = `<p class="empty">Couldn't load standings.<br><small>${esc(e && e.message || e)}</small></p>`; }
     };
     const showGrids = async () => {
       gBtn.classList.add("on"); bBtn.classList.remove("on"); db.innerHTML = loading;
@@ -262,7 +269,7 @@
         const rows = await O.leagueGrids(id, localDate());
         db.innerHTML = rows.length ? rows.map(gridCard).join("")
           : `<p class="empty">🔒 Finish today's Zozdle to reveal everyone's grids.</p>`;
-      } catch { db.innerHTML = `<p class="empty">Couldn't load grids.</p>`; }
+      } catch (e) { db.innerHTML = `<p class="empty">Couldn't load grids.<br><small>${esc(e && e.message || e)}</small></p>`; }
     };
     bBtn.onclick = showBoard; gBtn.onclick = showGrids;
     showBoard();

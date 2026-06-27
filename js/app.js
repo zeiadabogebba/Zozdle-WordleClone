@@ -621,9 +621,10 @@
   }
   function openArchive() { buildCalendar(); openModal("#m-archive"); }
   function selectArchiveDay(di) {
-    if (load(KEY.archive, {})[di]?.done) return toast("You already guessed this word!");
+    const done = !!load(KEY.archive, {})[di]?.done;
     closeModals();
-    loadArchive(di);
+    loadArchive(di); // shows that day's guesses (+ revealed answer in the subline)
+    if (done) toast("You already guessed this word!");
   }
   function buildCalendar() {
     const cal = $("#archive-cal");
