@@ -124,7 +124,8 @@ body::after {
   flex-direction: column;
   max-width: 540px;
   margin: 0 auto;
-  padding: 0 14px env(safe-area-inset-bottom);
+  /* top inset keeps the topbar below the iOS status bar / notch (standalone PWA) */
+  padding: env(safe-area-inset-top) 14px env(safe-area-inset-bottom);
   overflow: hidden;
 }
 
