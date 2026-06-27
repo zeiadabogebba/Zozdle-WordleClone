@@ -40,7 +40,7 @@
   --pop: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 
-  --z-toast: 40;
+  --z-toast: 60; /* above modals so messages are never hidden behind a popup */
   --z-modal: 50;
 
   color-scheme: dark;
@@ -421,6 +421,11 @@ body::after {
 }
 .modal-head { display: flex; align-items: flex-start; gap: 10px; }
 .modal-head h2 { flex: 1; }
+
+/* in-popup message (errors/confirmations appear here, not behind the modal) */
+.modal-msg { display: none; font-size: 14px; font-weight: 600; text-align: center; border-radius: var(--r); padding: 10px 12px; margin: 0 0 12px; }
+.modal-msg.bad { display: block; color: #fff; background: var(--magenta); box-shadow: 0 0 18px -5px var(--magenta-glow); animation: toastIn 0.2s var(--pop); }
+.modal-msg.ok { display: block; color: #06140d; background: var(--green); box-shadow: 0 0 18px -5px var(--green-glow); animation: toastIn 0.2s var(--pop); }
 .modal p, .modal li { font-size: 15px; line-height: 1.5; color: var(--muted); }
 .modal strong { color: var(--text); }
 

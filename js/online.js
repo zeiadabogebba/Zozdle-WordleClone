@@ -24,8 +24,30 @@
   /* ---------- helpers ---------- */
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const isDefaultName = (n) => /^player\d+$/i.test(n || "");
-  const toast = (m, bad) => (window.ZOZDLE_GAME && window.ZOZDLE_GAME.toast ? window.ZOZDLE_GAME.toast(m, bad) : null);
-  const openModal = (sel) => { document.querySelectorAll(".backdrop.open").forEach((b) => b.classList.remove("open")); $(sel).classList.add("open"); };
+  const gtoast = (m, bad) => (window.ZOZDLE_GAME && window.ZOZDLE_GAME.toast ? window.ZOZDLE_GAME.toast(m, bad) : null);
+  // show messages ON the open popup, not behind it; fall back to a global toast
+  function toast(m, bad) {
+    const modal = document.querySelector(".backdrop.open .modal");
+    if (!modal) return gtoast(m, bad);
+    let box = modal.querySelector(".modal-msg");
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "modal-msg";
+      const head = modal.querySelector(".modal-head");
+      modal.insertBefore(box, head ? head.nextElementSibling : modal.firstChild);
+    }
+    box.className = "modal-msg " + (bad ? "bad" : "ok");
+    box.textContent = m;
+    clearTimeout(box._t);
+    box._t = setTimeout(() => { box.className = "modal-msg"; box.textContent = ""; }, 3200);
+  }
+  const openModal = (sel) => {
+    document.querySelectorAll(".backdrop.open").forEach((b) => b.classList.remove("open"));
+    const m = $(sel);
+    const msg = m.querySelector(".modal-msg"); // clear any stale message
+    if (msg) { msg.className = "modal-msg"; msg.textContent = ""; }
+    m.classList.add("open");
+  };
   const closeModals = () => document.querySelectorAll(".backdrop.open").forEach((b) => b.classList.remove("open"));
   const todayUTC = () => new Date().toISOString().slice(0, 10);
 
