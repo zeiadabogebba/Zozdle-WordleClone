@@ -42,18 +42,20 @@ select count(*) from valid_words;   -- 52940
 select count(*) from answer_pool;   -- 3417
 ```
 
-## 4. Enable magic-link sign-in
-1. **Authentication → Providers → Email** — make sure it's **enabled**.
-2. **Authentication → URL Configuration**:
-   - **Site URL**: where the app runs (for local testing, `http://localhost:8080`;
-     in production, your Vercel URL).
-   - **Redirect URLs**: add the same origins.
-   The magic link returns the player to this URL to complete login.
-3. **Authentication → Email Templates → Magic Link** — set the **Subject** to
-   something like `▸ Your Zozdle access key` and paste the neon-themed body from
-   [`supabase/email/magic-link.html`](supabase/email/magic-link.html) into the
-   message (HTML). It uses Supabase's `{{ .ConfirmationURL }}` button plus a
-   `{{ .Token }}` access code.
+## 4. Enable email-code sign-in
+Zozdle signs in with a **6-digit code** (no magic link — links can't open an iOS
+home-screen PWA, so the code is the reliable path).
+
+1. **Authentication → Sign In / Providers → Email** — make sure it's **enabled**,
+   and set **Email OTP Length = `6`** (default is sometimes 8). Adjust OTP expiry to taste.
+2. **Authentication → Email Templates → Magic Link** — this is the slot the code flow
+   uses (the name is Supabase's, the email itself has no link). Set the **Subject** to
+   e.g. `Your Zozdle sign-in code` and paste the body from
+   [`supabase/email/otp-code.html`](supabase/email/otp-code.html) — it shows only the
+   6-digit `{{ .Token }}`.
+3. **SMTP must work** or no email sends. With Gmail SMTP the password must be a Google
+   **App Password** (requires 2-Step Verification), not your normal password — or use
+   a transactional provider like Resend.
 
 ## 5. Point the app at your project
 In [`js/config.js`](js/config.js), fill in `window.ZOZDLE_SUPABASE`:
@@ -81,7 +83,7 @@ blank keeps Zozdle running as the pure offline single-player game.
 
 ## The client is wired up
 Once the steps above are done and `js/config.js` has your keys, the app already
-supports it all: magic-link sign-in (account button), a username picker, the daily
-played through `submit_guess`, and the **Compete** button (trophy) for the global
+supports it all: 6-digit email-code sign-in (account button), a username picker, the
+daily played through `submit_guess`, and the **Compete** button (trophy) for the global
 leaderboard, leagues (create/join by code), and friends' gated grids. Signed-out or
 offline visitors still get the full single-player game.

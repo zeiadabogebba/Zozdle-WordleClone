@@ -23,7 +23,7 @@ CRT scanlines, a perspective grid horizon, and glowing neon tiles.
   falls back to a Merriam-Webster link, and looked-up words are cached for offline reuse.
 - **Stats** — played, win %, current/max streak, guess distribution, and a
   countdown to the next daily.
-- **Multiplayer (optional)** — sign in with a magic link to play a
+- **Multiplayer (optional)** — sign in with a 6-digit email code to play a
   *server-authoritative* daily (the answer never reaches the browser), climb
   worldwide and friend-league leaderboards ranked by streak, and unlock friends'
   grids each day once you've finished your own. Powered by Supabase — see

@@ -10,26 +10,21 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap');
     body { margin: 0; padding: 0; background: #08060f; }
-    a { text-decoration: none; }
-    @media (max-width: 600px) {
-      .card { width: 100% !important; }
-      .px   { padding-left: 22px !important; padding-right: 22px !important; }
-    }
   </style>
 </head>
 <body style="margin:0;padding:0;background-color:#08060f;">
   <!-- preheader (hidden) -->
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Your one-time key to drop into today's Zozdle is inside.</div>
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Your 6-digit Zozdle sign-in code is inside.</div>
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#08060f"
          style="background-color:#08060f;background-image:radial-gradient(120% 80% at 50% -10%, rgba(124,92,255,0.18), transparent 60%);">
     <tr><td align="center" style="padding:32px 16px;">
 
-      <table role="presentation" class="card" width="480" cellpadding="0" cellspacing="0" border="0" bgcolor="#0d0a1c"
+      <table role="presentation" width="480" cellpadding="0" cellspacing="0" border="0" bgcolor="#0d0a1c"
              style="width:480px;max-width:480px;background-color:#0d0a1c;border:1px solid rgba(41,231,255,0.35);border-radius:16px;">
 
         <!-- logo + tiles -->
-        <tr><td class="px" style="padding:36px 34px 6px;" align="center">
+        <tr><td style="padding:36px 34px 6px;" align="center">
           <div style="font-family:'Space Grotesk',Arial,sans-serif;font-size:30px;font-weight:700;letter-spacing:2px;line-height:1;">
             <span style="color:#29e7ff;text-shadow:0 0 12px rgba(41,231,255,0.7);">ZOZ</span><span style="color:#ff2d9b;text-shadow:0 0 12px rgba(255,45,155,0.7);">DLE</span>
           </div>
@@ -46,39 +41,25 @@
         </td></tr>
 
         <!-- copy -->
-        <tr><td class="px" style="padding:16px 34px 0;" align="center">
-          <div style="font-family:'Space Grotesk',Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#9b93cf;text-transform:uppercase;">&#9656;&nbsp;Player one, ready&nbsp;&#9656;</div>
-          <h1 style="font-family:'Space Grotesk',Arial,sans-serif;font-size:22px;line-height:1.3;color:#e9e6ff;font-weight:700;margin:14px 0 6px;">Press start to log in</h1>
-          <p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:15px;line-height:1.6;color:#9b93cf;margin:0 0 26px;">Tap below to drop straight into today's puzzle. The word is 4, 5 or 6 letters &mdash; no peeking.</p>
+        <tr><td style="padding:16px 34px 0;" align="center">
+          <div style="font-family:'Space Grotesk',Arial,sans-serif;font-size:12px;letter-spacing:3px;color:#9b93cf;text-transform:uppercase;">&#9656;&nbsp;Sign in&nbsp;&#9656;</div>
+          <h1 style="font-family:'Space Grotesk',Arial,sans-serif;font-size:22px;line-height:1.3;color:#e9e6ff;font-weight:700;margin:14px 0 6px;">Your code</h1>
+          <p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:15px;line-height:1.6;color:#9b93cf;margin:0 0 22px;">Enter this code in the Zozdle app to sign in.</p>
         </td></tr>
 
-        <!-- button (bulletproof, with Outlook/VML fallback) -->
-        <tr><td align="center" style="padding:0 34px;">
-          <!--[if mso]>
-          <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ .ConfirmationURL }}" style="height:50px;v-text-anchor:middle;width:266px;" arcsize="20%" fillcolor="#1be38b" stroke="f">
-            <center style="color:#06140d;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;letter-spacing:1px;">ENTER THE GRID &#9656;</center>
-          </v:roundrect>
-          <![endif]-->
-          <!--[if !mso]><!-- -->
-          <a href="{{ .ConfirmationURL }}"
-             style="display:inline-block;background-color:#1be38b;color:#06140d;font-family:'Space Grotesk',Arial,sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:15px 34px;border-radius:10px;box-shadow:0 0 22px rgba(27,227,139,0.5);">Enter the grid &#9656;</a>
-          <!--<![endif]-->
-        </td></tr>
-
-        <!-- access code -->
-        <tr><td class="px" style="padding:28px 34px 4px;" align="center">
-          <div style="font-family:'Space Grotesk',Arial,sans-serif;font-size:11px;letter-spacing:3px;color:#6b6398;text-transform:uppercase;">or enter this access code</div>
-          <div style="font-family:'Space Grotesk','Courier New',monospace;font-size:30px;font-weight:700;letter-spacing:8px;color:#f7c948;text-shadow:0 0 12px rgba(247,201,72,0.5);margin-top:10px;">{{ .Token }}</div>
+        <!-- the code -->
+        <tr><td style="padding:0 34px;" align="center">
+          <div style="font-family:'Space Grotesk','Courier New',monospace;font-size:40px;font-weight:700;letter-spacing:12px;color:#f7c948;text-shadow:0 0 16px rgba(247,201,72,0.55);padding:18px 0;">{{ .Token }}</div>
         </td></tr>
 
         <!-- divider -->
-        <tr><td style="padding:24px 34px 0;">
+        <tr><td style="padding:22px 34px 0;">
           <div style="height:1px;line-height:1px;font-size:0;background-color:rgba(124,92,255,0.18);">&nbsp;</div>
         </td></tr>
 
         <!-- footer -->
-        <tr><td class="px" style="padding:18px 34px 32px;" align="center">
-          <p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:12px;line-height:1.6;color:#6b6398;margin:0;">This key is single-use and expires within the hour. If you didn't try to log in to Zozdle, just ignore this email &mdash; no action needed.</p>
+        <tr><td style="padding:18px 34px 32px;" align="center">
+          <p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:12px;line-height:1.6;color:#6b6398;margin:0;">This code is single-use and expires shortly. If you didn't try to sign in to Zozdle, just ignore this email.</p>
         </td></tr>
 
       </table>

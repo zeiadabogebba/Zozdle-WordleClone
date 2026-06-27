@@ -73,7 +73,8 @@
 
   /* ---------- auth actions ---------- */
   let pendingEmail = "";
-  O.signIn = (email) => sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+  // code-only: signInWithOtp sends the email containing {{ .Token }}; no link/redirect
+  O.signIn = (email) => sb.auth.signInWithOtp({ email });
   O.verify = (email, token) => sb.auth.verifyOtp({ email, token, type: "email" });
   O.signOut = () => sb.auth.signOut();
 
@@ -94,17 +95,14 @@
   function openAccount() {
     const body = $("#account-body");
     if (!O.user) {
-      const standalone = matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
       body.innerHTML = `
-        <p>${standalone
-          ? "Enter your email and we'll send a <strong>6-digit code</strong>. Open the email, copy the code, and paste it below. <em>(In the installed app, use the code — the link opens Safari instead.)</em>"
-          : "Sign in with a magic link — no password. We'll email you a link <em>and</em> a 6-digit code."}</p>
+        <p>No passwords — enter your email and we'll send a <strong>6-digit code</strong>.</p>
         <input class="field" id="auth-email" type="email" inputmode="email" placeholder="you@email.com" autocomplete="email" />
-        <div class="btn-row"><button class="btn btn-primary" id="auth-send">${standalone ? "Send code" : "Send magic link"}</button></div>
+        <div class="btn-row"><button class="btn btn-primary" id="auth-send">Send code</button></div>
         <div id="auth-step2" class="hidden">
-          <p style="margin-top:12px">${standalone ? "Paste the 6-digit code from the email:" : "Check your inbox — click the link, or punch in the code:"}</p>
-          <input class="field code-input" id="auth-code" inputmode="numeric" maxlength="6" placeholder="000000" />
-          <div class="btn-row"><button class="btn btn-ghost" id="auth-verify">Enter code</button></div>
+          <p style="margin-top:12px">Enter the 6-digit code from the email:</p>
+          <input class="field code-input" id="auth-code" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" />
+          <div class="btn-row"><button class="btn btn-ghost" id="auth-verify">Sign in</button></div>
         </div>`;
       $("#auth-send").onclick = async () => {
         const email = $("#auth-email").value.trim();
