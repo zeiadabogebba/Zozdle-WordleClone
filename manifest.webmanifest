@@ -1,0 +1,16 @@
+{
+  "name": "Zozdle",
+  "short_name": "Zozdle",
+  "description": "A neon-arcade daily word game. Guess the hidden 4, 5 or 6 letter word.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08060f",
+  "theme_color": "#08060f",
+  "categories": ["games", "education", "entertainment"],
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
