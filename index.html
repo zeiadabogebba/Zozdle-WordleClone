@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <title>Zozdle — neon word game</title>
+  <meta name="description" content="Zozdle — a neon-arcade daily word game. Guess the hidden 4, 5 or 6 letter word. A new mystery length every day." />
+  <meta name="theme-color" content="#08060f" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zozdle" />
+
+  <!-- Fonts: Press Start 2P (logo accent) + Space Grotesk (readable body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- icon sprite (Lucide, 24x24, inherit currentColor) -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 24 24"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M21 18H8a2 2 0 0 1-1.42-.587l-3.994-4a2 2 0 0 1 0-2.826l3.994-4A2 2 0 0 1 8 6h13a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="m12 9 4 6"/><path d="m16 9-4 6"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  </svg>
+
+  <div class="crt" aria-hidden="true"></div>
+
+  <main class="app">
+    <header class="topbar">
+      <h1 class="logo">ZOZ<b>DLE</b></h1>
+      <button class="icon-btn" id="btn-compete" aria-label="Leaderboards & leagues"><svg class="ic"><use href="#i-trophy"/></svg></button>
+      <button class="icon-btn" id="btn-account" aria-label="Account"><svg class="ic"><use href="#i-user"/></svg></button>
+      <button class="icon-btn" id="btn-help" aria-label="How to play"><svg class="ic"><use href="#i-help"/></svg></button>
+      <button class="icon-btn" id="btn-stats" aria-label="Statistics"><svg class="ic"><use href="#i-stats"/></svg></button>
+      <button class="icon-btn" id="btn-settings" aria-label="Settings"><svg class="ic"><use href="#i-settings"/></svg></button>
+    </header>
+
+    <div class="modes" role="group" aria-label="Game mode">
+      <button class="mode" id="mode-daily" aria-pressed="true">Daily</button>
+      <button class="mode" id="mode-archive" aria-pressed="false">Archive</button>
+      <button class="mode" id="mode-practice" aria-pressed="false">Practice</button>
+    </div>
+
+    <div class="subline" id="subline" aria-live="polite">
+      <span id="sub-mode">Daily</span>
+      <span class="dot">·</span>
+      <span id="sub-meta"><span class="len" id="sub-len">5</span> letters</span>
+      <span id="sub-answer" class="hidden"></span>
+    </div>
+
+    <div class="board-wrap">
+      <div class="board" id="board" aria-label="Guess board"></div>
+    </div>
+
+    <div class="keyboard" id="keyboard" aria-label="Keyboard"></div>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="assertive"></div>
+
+  <!-- ===== How to play ===== -->
+  <div class="backdrop" id="m-help" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="help-title">How to play</h2>
+        <button class="icon-btn" data-close aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button>
+      </div>
+        <p>Guess the hidden word in <strong>6 tries</strong>. Every guess must be a real word of the correct length.</p>
+
+      <p style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin:14px 0 6px">Tile colours</p>
+      <p><span class="ex"><span class="tile correct"><span class="glyph">W</span></span></span> <strong>Green</strong> — right letter, right spot.</p>
+      <p><span class="ex"><span class="tile present"><span class="glyph">O</span></span></span> <strong>Amber</strong> — in the word, wrong spot.</p>
+      <p><span class="ex"><span class="tile absent"><span class="glyph">R</span></span></span> <strong>Grey</strong> — not in the word at all.</p>
+
+      <p style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin:14px 0 6px">The twist</p>
+      <p>Each day the word is <strong>4, 5 or 6 letters</strong> — the length is part of the puzzle. You find out when the board appears.</p>
+
+      <p style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin:14px 0 6px">Modes</p>
+      <p><strong>Daily</strong> — one new word every day, the same for everyone worldwide. Share your coloured grid after you finish.</p>
+      <p><strong>Archive</strong> — play any past daily you missed. Archive results count toward your played &amp; win stats but never your streak.</p>
+      <p><strong>Practice</strong> — endless random words any time. Practice games are completely separate and never affect your stats.</p>
+
+      <p style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin:14px 0 6px">Points</p>
+      <p>Every solved game earns points based on how few tries it took:</p>
+      <p style="font-family:monospace;font-size:14px;line-height:2;margin:4px 0 0 8px">
+        1 try → <strong>6 pts</strong> &nbsp;·&nbsp; 2 tries → <strong>5 pts</strong> &nbsp;·&nbsp; 3 tries → <strong>4 pts</strong> &nbsp;·&nbsp;
+        4 tries → <strong>3 pts</strong> &nbsp;·&nbsp; 5 tries → <strong>2 pts</strong> &nbsp;·&nbsp; 6 tries → <strong>1 pt</strong>
+      </p>
+      <p style="margin-top:8px">Points are shown on leaderboards as <strong>✦ pts</strong> and break ties when players have the same streak.</p>
+
+      <p style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin:14px 0 6px">Stats &amp; streaks</p>
+      <p>Your <strong>streak</strong> grows by completing the Daily each day in a row. Miss a day and it resets — the Archive can't recover it. Sign in to compete on global and league leaderboards.</p>
+
+      <p style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin:14px 0 6px">Notifications</p>
+      <p>Signed in, you can switch on two reminders in <strong>Settings</strong>: a nudge when the <strong>new Zozdle goes live</strong>, and a heads-up <strong>1 hour before it changes</strong> if you haven't played — so your streak never slips.</p>
+
+      <div class="btn-row" style="margin-top:18px"><button class="btn btn-primary" data-close>Got it</button></div>
+    </div>
+  </div>
+
+  <!-- ===== Stats / end of game ===== -->
+  <div class="backdrop" id="m-stats" role="dialog" aria-modal="true" aria-labelledby="stats-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="stats-title">Statistics</h2>
+        <button class="icon-btn" data-close aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button>
+      </div>
+
+      <div id="end-banner" class="hidden">
+        <p class="reveal-word" id="reveal-word"></p>
+        <p class="defn" id="definition"></p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat"><div class="num" id="st-played">0</div><div class="lbl">Played</div></div>
+        <div class="stat"><div class="num" id="st-win">0</div><div class="lbl">Win %</div></div>
+        <div class="stat"><div class="num" id="st-streak">0</div><div class="lbl">Streak</div></div>
+        <div class="stat"><div class="num" id="st-max">0</div><div class="lbl">Max</div></div>
+      </div>
+
+      <div id="dist-section">
+        <p class="lbl" style="text-transform:uppercase;color:var(--faint);font-size:12px;margin:0 0 6px">Guess distribution</p>
+        <div class="dist" id="dist"></div>
+      </div>
+
+      <div id="countdown-wrap" class="countdown hidden">Next Zozdle in <b id="countdown">--:--:--</b></div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-share"><svg class="ic" style="width:20px;height:20px"><use href="#i-share"/></svg> Share</button>
+        <button class="btn btn-ghost hidden" id="btn-leaderboard">Leaderboards</button>
+        <button class="btn btn-ghost hidden" id="btn-newpractice">New random word</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Settings ===== -->
+  <div class="backdrop" id="m-settings" role="dialog" aria-modal="true" aria-labelledby="set-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="set-title">Settings</h2>
+        <button class="icon-btn" data-close aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="toggle-row">
+        <span>Hard mode<br><span style="font-size:15px;color:var(--faint)">Revealed hints must be reused</span></span>
+        <label class="switch"><input type="checkbox" id="set-hard"><span class="track"></span><span class="thumb"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>CRT scanlines</span>
+        <label class="switch"><input type="checkbox" id="set-crt" checked><span class="track"></span><span class="thumb"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>Reduced motion</span>
+        <label class="switch"><input type="checkbox" id="set-motion"><span class="track"></span><span class="thumb"></span></label>
+      </div>
+
+      <p style="font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin:18px 0 4px">Notifications</p>
+      <div class="toggle-row">
+        <span>New Zozdle alert<br><span style="font-size:15px;color:var(--faint)">Notify me when the new Zozdle is available</span></span>
+        <label class="switch"><input type="checkbox" id="set-notify-new"><span class="track"></span><span class="thumb"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>Last-hour reminder<br><span style="font-size:15px;color:var(--faint)">Notify me 1 hour before it changes if I haven't played</span></span>
+        <label class="switch"><input type="checkbox" id="set-notify-before"><span class="track"></span><span class="thumb"></span></label>
+      </div>
+      <p id="notify-note" style="font-size:14px;color:var(--faint);margin:6px 0 0"></p>
+
+      <p style="font-size:15px;color:var(--faint);margin-top:14px;text-align:center">Zozdle · a neon word game</p>
+    </div>
+  </div>
+
+  <!-- ===== Archive calendar ===== -->
+  <div class="backdrop" id="m-archive" role="dialog" aria-modal="true" aria-labelledby="archive-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="archive-title">Archive</h2>
+        <button class="icon-btn" data-close aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button>
+      </div>
+      <p class="cal-legend">Play past puzzles · <span class="dot done"></span> played · <span class="dot miss"></span> missed · <span class="dot today"></span> today</p>
+      <div id="archive-cal" class="cal"></div>
+    </div>
+  </div>
+
+  <!-- ===== Resume practice prompt ===== -->
+  <div class="backdrop" id="m-resume" role="dialog" aria-modal="true" aria-labelledby="resume-title">
+    <div class="modal">
+      <h2 id="resume-title">Practice in progress</h2>
+      <p>You have a practice game going. Continue it, or start a new word?</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="resume-continue">Continue</button>
+        <button class="btn btn-ghost" id="resume-reset">New word</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Account / sign-in ===== -->
+  <div class="backdrop" id="m-account" role="dialog" aria-modal="true" aria-labelledby="account-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="account-title">Account</h2>
+        <button class="icon-btn" data-close aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button>
+      </div>
+      <div id="account-body"></div>
+    </div>
+  </div>
+
+  <!-- ===== Compete: leaderboards + leagues ===== -->
+  <div class="backdrop" id="m-compete" role="dialog" aria-modal="true" aria-labelledby="compete-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="compete-title">Compete</h2>
+        <button class="icon-btn" data-close aria-label="Close"><svg class="ic"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="tabs">
+        <button class="tab" id="tab-global" aria-pressed="true">Global</button>
+        <button class="tab" id="tab-leagues" aria-pressed="false">Leagues</button>
+      </div>
+      <div id="compete-body"></div>
+    </div>
+  </div>
+
+  <script src="js/words-answers.js"></script>
+  <script src="js/words-valid.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/vendor/supabase.js"></script>
+  <script src="js/online.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
